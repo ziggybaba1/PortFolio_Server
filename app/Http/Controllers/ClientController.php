@@ -7,9 +7,16 @@ use App\Models\Client;
 use Illuminate\Support\Facades\Validator;
 use DB;
 use App\Models\Media;
+use App\Http\Requests\StoreClientRequest;
+use App\Http\Services\ClientService;
+use App\Http\Mappers\ClientMapper;
 
 class ClientController extends Controller
 {
+    public function __construct(ClientService $client_service,ClientMapper $client_mapper){
+        $this->client_service=$client_service;
+        $this->client_mapper=$client_mapper;
+    }
 
     public function client(){
         $client=Client::get();
@@ -26,65 +33,33 @@ class ClientController extends Controller
     }
 
     public function deleteclient($id){
-        $testimony=Client::findOrFail($id);
-        $testimony->delete(); 
+        $client=Client::findOrFail($id);
+        $client->delete(); 
         session()->flash('success', 'Successfully deleted');
         return redirect('/clients');
        }
 
-    public function addclient(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'image' => 'required',
-        ]);
-        //Send failed response if request is not valid
-            if($validator->fails()){
-                return redirect('/clients/add')->withErrors(["error"=>$validator->errors()->first()]);
-            } 
-            $image_path="";$media;
-            if($request->hasFile('image')){
-                    $image = $request->file('image');
-                    $image_name = $image->getClientOriginalName();
-                    $image->move(public_path('/images'),$image_name);
-                    $image_path = "/images/" . $image_name;
-                    $media = new Media;
-                    $media->filename=$image_name;
-                    $media->url=$image_path;
-                    $media->save();
-            }
-            DB::table('clients')->insert([
-                "name"=>$request->name,
-                "url"=>$request->url,
-                "media"=>$media->id
-            ]);
+    public function addclient(StoreClientRequest $request){
+        $image_path=null;
+        if($request->hasFile('image')){
+            $media = new Media;
+            $image_path=$this->client_service->handleUploadImages($request,$media);
+        }
+        $data=$this->testimony_mapper->matchRequest($request,["uuid"=>$this->now()->timestamp,"media"=>$image_path->id]);
+            DB::table('clients')->insert($data);
             session()->flash('success', 'Successfully added');
             return redirect('/clients/add');
     }
 
     public function updateclient(Request $request,$id){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-        ]);
-        //Send failed response if request is not valid
-            if($validator->fails()){
-                return redirect('/clients/edit/'.$id)->withErrors(["error"=>$validator->errors()->first()]);
-            } 
-            $image_path="";$media;
-            if($request->hasFile('image')){
-                    $image = $request->file('image');
-                    $image_name = $image->getClientOriginalName();
-                    $image->move(public_path('/images'),$image_name);
-                    $image_path = "/images/" . $image_name;
-                    $media = new Media;
-                    $media->filename=$image_name;
-                    $media->url=$image_path;
-                    $media->save();
-            }
-            DB::table('clients')->insert([
-                "name"=>$request->name,
-                "url"=>$request->url,
-                "media"=>$media->id??Client::findOrFail($id)->media
-            ]);
+        $image_path=null;$media;
+        if($request->hasFile('image')){
+            $media = new Media;
+            $image_path=$this->testimony_service->handleUploadImages($request->file('image'),$media);
+        }
+        $med=Client::findOrFail($id);
+        $data=$this->testimony_mapper->matchRequest($request,["uuid"=>$this->now()->timestamp,"media"=>$image_path->id??$med->media]);
+            DB::table('clients')->insert($data);
             session()->flash('success', 'Successfully added');
             return redirect('/clients/edit/'.$id);
     }

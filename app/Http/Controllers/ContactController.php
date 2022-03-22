@@ -9,37 +9,30 @@ use DB;
 use Mail;
 use App\Mail\ContactMail;
 use Carbon\Carbon;
+use App\Http\Requests\StoreContactRequest;
+use App\Http\Mappers\ContactMapper;
 
 class ContactController extends Controller
 {
+
+    public function __construct(ContactMapper $contact_mapper){
+        $this->contact_mapper=$contact_mapper;
+    }
     public function contact(){
         $contact=Contact::latest()->get();
         return view("contact.contact",["contacts"=>$contact]);
     }
 
-    public function postContact(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email',
-            'message' => 'required|max:800',
-        ]);
-        if($validator->fails()){
-            return $this->failureResponse(401,$validator->errors()->first());
-        } 
+    public function postContact(StoreContactRequest $request){
         $mailData = [
             'title' => 'Enquiry from Website',
             'body' => $request->message
         ];
-        $clientIP = request()->ip(); 
-        $checkForward=Contact::whereDate('created_at',Carbon::today())->where('IP',$clientIP)->count();;
+        $contactIP = request()->ip(); 
+        $checkForward=Contact::whereDate('created_at',Carbon::today())->where('IP',$contactIP)->count();;
         if($checkForward==0){
-        DB::table('contacts')->insert([
-            "name"=>$request->name,
-            "email"=>$request->email,
-            "description"=>$request->message,
-            "IP"=>$clientIP,
-            "created_at"=>Carbon::now()
-        ]);
+        $data=$this->contact_mapper->matchRequest($request,["uuid"=>$this->now(),"ip"=>$contactIP]);
+        DB::table('contacts')->insert($data);
         try {
             Mail::to('seyiadejugbagbe@gmail.com')->send(new ContactMail($mailData));
          } catch (\Throwable $th) {

@@ -27,7 +27,7 @@ class ApiController extends Controller
     }
 
     public function projects(){
-        $project=Project::latest('id')->take(10)->get();
+        $project=Project::take(10)->get();
         $returnStatus=[
             "status"=>"success",
             "data"=>$project
@@ -46,7 +46,7 @@ class ApiController extends Controller
 
     public function blogs($start=0){
         $blogs= DB::table('blogs') 
-                ->select('users.id', 'users.name','blogs.*','media.*')
+                ->select('users.id', 'users.name','blogs.*','media.id as mid','media.url')
                 ->join('users', 'users.id', '=', 'blogs.posted_by')
                 ->join('media', 'media.id', '=', 'blogs.fullimage')
                 ->skip($start)
@@ -60,9 +60,13 @@ class ApiController extends Controller
     }
 
     public function blogdetail($name){
-        $blogs= Blog::where('uuid',$name)->first();
+        $blogs= Blog::select('users.id', 'users.name','blogs.*','media.id as mid','media.url')
+                ->where('blogs.uuid',$name)
+                ->join('users', 'users.id', '=', 'blogs.posted_by')
+                ->join('media', 'media.id', '=', 'blogs.fullimage')
+                ->first();
         $blogsP= DB::table('blogs')
-                ->select('users.id', 'users.name','blogs.*','media.*')
+                ->select('users.id', 'users.name','blogs.*','media.id as mid','media.url')
                 ->join('users', 'users.id', '=', 'blogs.posted_by')
                 ->join('media', 'media.id', '=', 'blogs.fullimage')
                 ->skip(0)

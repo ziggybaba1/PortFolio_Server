@@ -226,16 +226,41 @@
       <span>Contact</span>
     </a>
   </li>
+
   <li class="nav-item">
-  @if(request()->routeIs('media'))
-    <a class="nav-link" href="/media">
-    @else
-    <a class="nav-link collapsed" href="/media">
-      @endif
-      <i class="bi bi-images"></i>
-      <span>Media</span>
-    </a>
-  </li>
+    @if(request()->routeIs('media')||request()->routeIs('media.add'))
+      <a class="nav-link " data-bs-target="#media-nav" data-bs-toggle="collapse" href="#">
+          @else
+          <a class="nav-link collapsed" data-bs-target="#media-nav" data-bs-toggle="collapse" href="#">
+          @endif
+        <i class="bi bi-images"></i><span>Media</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      @if(request()->routeIs('media')||request()->routeIs('media.add'))
+      <ul id="media-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
+      @else
+      <ul id="media-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+          @endif
+        <li>
+        @if(request()->routeIs('media'))
+          <a href="/media" class="active">
+          @else
+          <a href="/media" >
+          @endif
+            <i class="bi bi-circle"></i><span>List</span>
+          </a>
+        </li>
+        <li>
+        @if(request()->routeIs('media.add'))
+          <a href="/media/add" class="active">
+          @else
+          <a href="/media/add" >
+          @endif
+            <i class="bi bi-circle"></i><span>Add New</span>
+          </a>
+        </li>
+      </ul>
+    </li><!-- End Components Nav -->
+ 
   <li class="nav-item">
   @if(request()->routeIs('settings'))
     <a class="nav-link" href="/settings">

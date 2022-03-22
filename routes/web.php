@@ -100,6 +100,11 @@ Route::middleware(['auth:sanctum', 'verified'])->post('/page/about/update','App\
 Route::middleware(['auth:sanctum', 'verified'])->get('/settings','App\Http\Controllers\PageController@setting')->name('settings');
 Route::middleware(['auth:sanctum', 'verified'])->post('/setting','App\Http\Controllers\PageController@updatesetting');
 
+//Media
+Route::middleware(['auth:sanctum', 'verified'])->get('/media','App\Http\Controllers\MediaController@view')->name('media');
+Route::middleware(['auth:sanctum', 'verified'])->get('/media/add','App\Http\Controllers\MediaController@add')->name('media.add');
+Route::middleware(['auth:sanctum', 'verified'])->post('/media/submit','App\Http\Controllers\MediaController@create');
+
 
 //Verify Payment
 // Route::middleware(['auth:sanctum', 'verified'], function () {

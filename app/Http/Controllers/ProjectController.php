@@ -22,7 +22,7 @@ class ProjectController extends Controller
             $imageData=[];
             if($request->hasFile('image')){
                 $media = new Media;
-               $imageData=$this->project_service->handleUploadImages($request->file('image'),$media);
+               $imageData=$this->project_service->handleUploadImages($request,$media);
             }
             $data=$this->project_mapper->matchRequest($request,["uuid"=>$this->now()->timestamp,"media"=>json_encode($imageData)]);
             DB::table('projects')->insert($data);
@@ -35,7 +35,7 @@ class ProjectController extends Controller
             $imageData=[];
             if($request->hasFile('image')){
                 $media = new Media;
-                $imageData=$this->project_service->handleUploadImages($request->file('image'),$media);
+                $imageData=$this->project_service->handleUploadImages($request,$media);
              }
             $med=DB::table('projects')->find($id);
             $data=$this->project_mapper->matchRequest($request,["uuid"=>$this->now()->timestamp,"media"=>json_encode($this->project_service->mergeImage($med->media,$imageData))]);
